@@ -11,6 +11,35 @@ revealOptions:
     controls: false
 ---
 
+<style>
+.reveal .slides {
+  height: 100%;
+  top: 20px;
+  margin-top: 0;
+}
+
+.reveal .slides>section {
+  min-height: 90%;
+}
+
+.reveal .slides>section>section {
+  min-height: 100%;
+}
+
+.reveal p {
+    text-align: center;
+    margin: 20px 0;
+    line-height: 1.0;
+}
+.reveal pre code {
+    display: block;
+    padding: 5px;
+    overflow: auto;
+    max-height: 800px;
+    word-wrap: normal;
+}
+</style>
+
 <img src="./images/jest.jpg" width="1000px" /><br>
 <small>by Peter Cosemans </small>
 
@@ -56,7 +85,7 @@ Jest is an popular integrated testing solution<br> written by Facebook.
 * Speed
 * Instant feedback
 * Powerful mocking
-* Works with typescript
+* Works with typescript & angular
 * Snapshot testing
 
 Note: Speaker notes
@@ -107,7 +136,7 @@ Standard Babel config
 }
 ```
 
----
+----
 
 ## Zero configuration
 
@@ -137,7 +166,7 @@ Watch mode
 $ npx jest --watch
 ```
 
----
+----
 
 ## Flexible style
 
@@ -156,24 +185,27 @@ describe('Calc', () => {
 })
 ```
 
-Tape & Ava Style
+Mocha style
 
 ```js
-// describe is optional
-describe('Calc', () => {
-    test(() => {
+it('should do this....', () => {
+})
 
-    })
+it.only('should ...', () => {
+})
 
-    test.only('addition', () => {
-    })
-
-    test.skip('addition of string', () => {
-    })
+it.skip('should ...', () => {
 })
 ```
 
----
+Tape & Ava Style
+
+```js
+test('addition', () => {
+})
+```
+
+----
 
 ## Flexible style
 
@@ -215,12 +247,143 @@ Jest
 
 <image src="images/jest-failed.png"></image>
 
+----
+
+## Jasmine Matchers
+
+toBe (===)
+
+```js
+test('two plus two is four', () => {
+    expect(2 + 2).toBe(4);
+});
+```
+
+toEqual (checks every property)
+
+```js
+test('object assignment', () => {
+    const data = {one: 1};
+    data['two'] = 2;
+    expect(data).toEqual({one: 1, two: 2});
+});
+```
+
+Truthiness
+
+```js
+test('null', () => {
+    const n = null;
+    expect(n).toBeNull();
+    expect(n).toBeDefined();
+    expect(n).not.toBeUndefined();
+    expect(n).not.toBeTruthy();
+    expect(n).toBeFalsy();
+});
+```
+
+----
+
+## Jasmine Matchers
+
+Numbers
+
+```js
+test('two plus two', () => {
+    const value = 2 + 2;
+    expect(value).toBe(4);
+    expect(value).toBeGreaterThan(3);
+    expect(value).toBeGreaterThanOrEqual(3.5);
+    expect(value).toBeLessThan(5);
+});
+
+test('adding floating point numbers', () => {
+    const value = 0.1 + 0.2;
+    expect(value).not.toBe(0.3);    // It isn't! Because rounding error
+    expect(value).toBeCloseTo(0.3); // This works.
+});
+```
+
+Strings
+
+```js
+test('but there is a "stop" in Christoph', () => {
+    expect('Christoph').toMatch(/stop/);
+});
+```
+
+Exceptions
+
+```js
+test('compiling android goes as expected', () => {
+    expect(fn).toThrow();
+    expect(fn).toThrow(ConfigError);
+
+    // warp a function with arguments
+    expect(() => testMe(1, 2, 3)).toThrow();
+});
+```
+
+----
+
+## Jasmine Matchers
+
+And More
+
+[Jest Expect API](https://facebook.github.io/jest/docs/expect.html)
+
+And easy to extend
+
+[Jasmine-Matchers](https://github.com/JamieMason/Jasmine-Matchers)
+
+----
+
+## Async support
+
+Promise support; like Mocha
+
+```js
+import { find } from './myService'
+
+describe('myService', () => {
+    test('find', () => {
+        // return the promise here
+        return find('query')
+            .then(data => {
+                expect(data).toEqual('abc')
+            })
+        })
+    });
+});
+```
+
+Async & await support
+
+```js
+import { find } from './myService'
+
+describe('myService', () => {
+    test('find', async () => {
+        const result = await find('query');
+        expect(data).toEqual('abc')
+    });
+});
+```
+
+Async expect
+
+```js
+test ('should work', () => {
+    return expect(find('query')).resolves.toEqual('abc');
+});
+```
+
 ---
 
 # Speed
 > Unit test should run fast.
 
----
+----
 
 ## Speed
 
@@ -287,10 +450,137 @@ Run only the following:
 
 ---
 
+# Powerfull mocking
+> More then stubs and spies
+
+----
+
+## Mocking
+
+Jasmine
+
+```js
+// mocked function
+const stub = jasmine.createSpy('name')
+
+// mocked function with return
+const stub = jasmine.createSpy('name').and.returnValue(2)
+
+// mocked function on foo with new implementation
+spyOn(foo, 'setBar').and.callFake(() => { throw new Error('bad') })
+
+// assert
+foo.setBar('abc');
+expect(foo.setBar).toHaveBeenCalledWith();
+```
+
+Sinon
+
+```js
+const stub = sinon.stub()
+const stub = sinon.stub().andReturns(2)
+sinon.stub(foo, 'setBar').callsFake(() => { throw new Error('bad') })
+sinon.stub(foo, 'setBar').throws(new Error('bad') })
+
+// assert
+foo.setBar('abc');
+expect(mock2.calledWith('abc')).toBeTruthy();
+```
+
+Jest
+
+```js
+const stub = jest.fn()
+const stub = jest.fn().mockReturnValue(2)
+jest.spyOn(foo, 'setBar').mockImplementation(() => { throw new Error('bad') })
+
+// assert
+foo.setBar('abc');
+expect(foo.setBar).toHaveBeenCalledWith('abc');
+```
+
+Just the same but different :)
+
+----
+
+## Jest Powerfull Mocking
+
+```js
+// userRepo.js
+import { db } from './data/db'
+import { eventBus } from './eventBus'
+
+export class UserRepo {
+    save(user) {
+        eventBus.publish('save', user)
+        return db.save(user); // this call to the DB
+    }
+}
+```
+
+```js
+// userRepo.spec.js
+import { eventBus } from './eventBus'
+import { db } from './data/db'
+jest.mock('./eventBus');
+jest.mock('./data/db');
+
+test('userRepo', async () => {
+    const user = { id: 12, name: 'John' };
+    db.save.mockReturnValue(Promise.resolve(user))
+    const sut = new UserRepo();
+
+    await sut.save(testUser)
+    expect(db.save).toHaveBeenCalledWith(user)
+    expect(eventBus.publish).toHaveBeenCalledWith('save', user)
+})
+```
+
+All functions on db & eventBus are mocked
+
+----
+
+## Jest Powerfull Mocking
+
+#### Predefined mocks
+
+Create a mock inside ```__mocks__``` folder
+
+```bash
+data/
+    db.js
+    __mocks__/
+        db.js
+```
+
+```js
+// db/__mocks__/db.js
+export const db = {
+    save: jest.fn()
+}
+```
+
+When importing ```./data/db``` the mock will be loaded
+
+```js
+// userRepo.spec.js
+import { db } from './data/db'
+
+test('userRepo', async () => {
+    const sut = new UserRepo();
+    await sut.save(testUser)
+    expect(db.save).toHaveBeenCalledWith(user)
+})
+```
+
+No more accidental access to the DB
+
+---
+
 # Jest & Angular
 > A good couple together
 
----
+----
 
 ## Setup
 
