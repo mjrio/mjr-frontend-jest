@@ -12,7 +12,7 @@ module.exports = function(config) {
     frameworks: ['jasmine'],
 
     // list of files / patterns to load in the browser
-    files: ['./tests.js'],
+    files: ['./resolve-tests.js'],
 
     // list of files to exclude
     exclude: [],
@@ -20,7 +20,7 @@ module.exports = function(config) {
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
     preprocessors: {
-      './tests.js': ['webpack', 'sourcemap'],
+      './resolve-tests.js': ['webpack'],
     },
 
     // test results reporter to use
@@ -43,7 +43,7 @@ module.exports = function(config) {
 
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-    browsers: ['Chrome'],
+    browsers: ['ChromeHeadless'],
 
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits

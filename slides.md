@@ -287,66 +287,46 @@ Run only the following:
 
 ---
 
-## Setup
+# Jest & Angular
+> A good couple together
 
 ---
 
-## Jest and Angular
+## Setup
 
-Add jest-angular presets
+Add jest & jest-angular presets
 
 ```bash
-$ yarn add -D @types/jest jest jest-preset-angular
+$ yarn add jest @types/jest jest-preset-angular --dev
 ```
 
-For a AngularCLI project remove all karma stuff and jasmine
+Make sure you don't have '@types/jasmine'
 
 ```bash
-# remove all karma and dependend modules
-$ yarn remove @types/jasmine karma karma-chrome-launcher karma-coverage-istanbul-reporter karma-jasmine karma-jasmine-html-reporter karma-cli jasmine-core jasmine-spec-reporter
-
-# remove karma config and bootstrap
-$ rm karma.conf.js ./src/test.ts
+$ yarn remove @types/jasmine
 ```
 
 Config
 
 ```json
 "scripts": {
-    "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",
-    "lint": "ng lint",
-    "e2e": "ng e2e",
-    "test": "jest",
     "test:watch": "jest --watch"
 },
 "jest": {
     "preset": "jest-preset-angular",
-    "setupTestFrameworkScriptFile": "<rootDir>/src/jest.ts"
+    "setupTestFrameworkScriptFile": "<rootDir>/test/jest.ts"
 }
 ```
 
 Script file
 
 ```js
+// test/jest.ts
 import 'jest-preset-angular';
 
-// local and session storage mock
-const mock = () => {
-  let storage = {};
-  return {
-    getItem: key => (key in storage ? storage[key] : null),
-    setItem: (key, value) => (storage[key] = value || ''),
-    removeItem: key => delete storage[key],
-    clear: () => (storage = {})
-  };
-};
-
-Object.defineProperty(window, 'localStorage', { value: mock() });
-Object.defineProperty(window, 'sessionStorage', { value: mock() });
+// we need to mock 'getComputedStyle' to make angular run in Jest
 Object.defineProperty(window, 'getComputedStyle', {
-value: () => ['-webkit-appearance']
+    value: () => ['-webkit-appearance']
 });
 ```
 
