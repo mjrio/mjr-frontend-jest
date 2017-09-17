@@ -46,6 +46,7 @@
   "jest": {
     "verbose": true,
     "preset": "jest-preset-angular",
+    "coverageReporters": ["json", "lcov", "text", "html"],
     "setupTestFrameworkScriptFile": "<rootDir>/src/setupJest.ts",
     "transformIgnorePatterns": ["node_modules/(?!@ngrx|ngx-http-test)"]
   }

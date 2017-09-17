@@ -54,10 +54,13 @@ https://github.com/mjrio/mjr-frontend-jest
 # JS Testing
 
 The old ones
-- [Karma / jasmine](https://jasmine.github.io/) - What we all use :)
+
+- [Karma / jasmine](https://jasmine.github.io/) - Karma == Angular
 - [Mocha / Chai](https://mochajs.org/) - Simple, flexible, fun
+<br><br>
 
 New and improved
+
 - [Tape](https://github.com/substack/tape) - A new style
 - [Ava](https://github.com/avajs/ava) - Futuristic JavaScript test runner
 - [Jest](https://facebook.github.io/jest/) - Delightful JavaScript Testing
@@ -87,6 +90,7 @@ Jest is an popular integrated testing solution<br> written by Facebook.
 * Powerful mocking
 * Works with typescript & angular
 * Snapshot testing
+* Code coverage included
 
 Note: Speaker notes
 
@@ -207,7 +211,7 @@ test('addition', () => {
 
 ----
 
-## Flexible style
+## File & Folders
 
 Name your test files
 
@@ -378,6 +382,69 @@ test ('should work', () => {
 });
 ```
 
+----
+
+## Client and Server code
+
+Node
+
+```json
+{
+    jest: {
+        testEnvironment: 'node'
+    }
+}
+```
+
+No browser required (Angular, VueJS, React)
+
+```json
+{
+    jest: {
+        testEnvironment: 'jsdom'
+    }
+}
+```
+
+```js
+test('use jsdom in this test file', () => {
+  const element = document.createElement('div');
+  expect(element).not.toBeNull();
+});
+```
+
+<br>
+
+## [jsdom](https://github.com/tmpvar/jsdom)
+
+A JavaScript implementation of the WHATWG DOM and HTML standards, for use with node.js
+
+---
+
+## Code coverage
+
+> It's all included
+
+```json
+jest --coverage
+```
+
+```
+Test Suites: 2 failed, 1 passed, 3 total
+Tests:       2 failed, 1 passed, 3 total
+Snapshots:   0 total
+Time:        0.869s, estimated 1s
+Ran all test suites.
+----------------|----------|----------|----------|----------|----------------|
+File            |  % Stmts | % Branch |  % Funcs |  % Lines |Uncovered Lines |
+----------------|----------|----------|----------|----------|----------------|
+All files       |    85.71 |       50 |       80 |    85.71 |                |
+ calc.js        |       75 |      100 |       50 |       75 |              9 |
+ formatter.js   |      100 |       50 |      100 |      100 |              4 |
+ userService.js |      100 |      100 |      100 |      100 |                |
+----------------|----------|----------|----------|----------|----------------|
+```
+
 ---
 
 # Speed
@@ -432,7 +499,7 @@ Unit test should run fast.
 ---
 
 # Instant feedback
-> Speed it not the main factor
+> Speed is not the main factor
 
 ----
 
@@ -503,7 +570,7 @@ Just the same but different :)
 
 ----
 
-## Jest Powerfull Mocking
+## Mocking dependencies
 
 ```js
 // userRepo.js
@@ -537,43 +604,6 @@ test('userRepo', async () => {
 ```
 
 All functions on db & eventBus are mocked
-
-----
-
-## Jest Powerfull Mocking
-
-#### Predefined mocks
-
-Create a mock inside ```__mocks__``` folder
-
-```bash
-data/
-    db.js
-    __mocks__/
-        db.js
-```
-
-```js
-// db/__mocks__/db.js
-export const db = {
-    save: jest.fn()
-}
-```
-
-When importing ```./data/db``` the mock will be loaded
-
-```js
-// userRepo.spec.js
-import { db } from './data/db'
-
-test('userRepo', async () => {
-    const sut = new UserRepo();
-    await sut.save(testUser)
-    expect(db.save).toHaveBeenCalledWith(user)
-})
-```
-
-No more accidental access to the DB
 
 ---
 
@@ -618,36 +648,192 @@ import 'jest-preset-angular';
 Object.defineProperty(window, 'getComputedStyle', {
     value: () => ['-webkit-appearance']
 });
+
+// limit Zone.js messy error stack trace
+Error.stackTraceLimit = 2
 ```
 
 That's all.
 
+----
+
+## Use
+
+```js
+import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { TestBed, async } from '@angular/core/testing';
+import { AppComponent } from './app.component';
+
+describe('AppComponent', () => {
+  beforeEach(
+    async(() => {
+      TestBed.configureTestingModule({
+        declarations: [
+          AppComponent,
+        ],
+        schemas: [NO_ERRORS_SCHEMA],
+      }).compileComponents();
+    }),
+  );
+
+  it('should create the app', async(() => {
+      const fixture = TestBed.createComponent(AppComponent);
+      const app = fixture.debugElement.componentInstance;
+      expect(app).toBeTruthy();
+    }),
+  );
+})
+```
+
+> All Angular test feature can he used.
+
+----
+
+# Snapshot testing
+> One you have it, you never go back.
+
+----
+
+## How to test this?
+
+```js
+export function formatList(listName, items, key) {
+  return `These are the items in the ${listName}:${items.reduce(
+    (itemsList, item) => {
+      return `${itemsList}\n  - ${key ? item[key] : item}`;
+    },
+    '',
+  )}`;
+}
+```
+
+----
+
+## Snapshot testing
+
+```js
+  it('should create the app', async(() => {
+    const items = [{ name: 'beer', name: 'soup'}]
+    const result = formatList('Shopping', items, 'name');
+    expect(result).toMatchSnapshot();
+  }),
+);
+```
+
+> Make hard to test content easy
+
+----
+
+## Angular component testing
+
+The old way
+
+```js
+it('contains list of blog items by default', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+
+    // check the basic component state
+    expect(fixture.componentInstance.editing).toBe(false);
+    expect(fixture.nativeElement
+       .querySelector('#blog-editor-panel') === null).toBe(true);
+    expect(fixture.nativeElement
+       .querySelector('#blog-roll-panel') === null).toBe(false);
+    let trs = fixture.nativeElement.querySelectorAll('tr.rows');
+    expect(trs.length).toBe(2);
+    let tdTitleContent = trs[0].cells[1].textContent;
+    let tdRenderedContent = trs[0].cells[2].textContent;
+    expect(tdTitleContent).toContain('Article Title...');
+    expect(tdRenderedContent).toContain('*Hi there*');
+})
+```
+
+With snapshot testing
+
+```js
+it('should render correctly', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    expect(fixture).toMatchSnapshot();
+})
+```
+
 ---
 
-# The End :)
+# Migrating
+
+[jest-codemods](https://github.com/skovhus/jest-codemods)
+
+Migrating JavaScript test files from AVA, Chai, Jasmine, Mocha, proxyquire, Should.js and Tape to Jest.
+
+```
+$ jest-codemods --help
+
+    Codemods for migrating test files to Jest.
+
+    Usage
+      $ jest-codemods <path> [options]
+
+    path    Files or directory to transform. Can be a glob like src/**.test.js
+
+    Options
+      --force, -f   Bypass Git safety checks and forcibly run codemods
+      --dry, -d     Dry run (no changes are made to files)
+      --parser      The parser to use for parsing your source files (babel | babylon | flow)  [babel]
+```
+
+> Sorry, not for TypeScript!
+
+----
+
+## Chai and jest
+
+```js
+/* eslint-disable import/no-extraneous-dependencies */
+const chai = require('chai');
+const dirtyChai = require('dirty-chai');
+
+chai.use(dirtyChai);
+
+// Make sure chai and jasmine ".not" play nice together
+const originalNot = Object.getOwnPropertyDescriptor(chai.Assertion.prototype, 'not').get;
+Object.defineProperty(chai.Assertion.prototype, 'not', {
+  get() {
+    Object.assign(this, this.assignedNot);
+    return originalNot.apply(this);
+  },
+  set(newNot) {
+    this.assignedNot = newNot;
+    return newNot;
+  },
+});
+
+// Combine both jest and chai matchers on expect
+const originalExpect = global.expect;
+
+global.expect = (actual) => {
+  const originalMatchers = originalExpect(actual);
+  const chaiMatchers = chai.expect(actual);
+  const combinedMatchers = Object.assign(chaiMatchers, originalMatchers);
+  return combinedMatchers;
+};
+
+```
+
+- [Combining Chai and Jest matchers](https://medium.com/@RubenOostinga/combining-chai-and-jest-matchers-d12d1ffd0303)
+- [Jest + Chai and expect.assertions](http://www.andrewsouthpaw.com/2017/05/12/jest-chai-and-expect-assertions/)
 
 ---
 
 ## Resources
 
+- [Jest Snapshots and Beyond](https://www.youtube.com/watch?v=HAuXJVI_bUs)
 - [Unit testing Angular applications with Jest](https://izifortune.com/unit-testing-angular-applications-with-jest/)
+- [Test JavaScript with Jest from @kentcdodds on @eggheadio](https://egghead.io/lessons/javascript-test-javascript-with-jest)
+- [Unlocking Test Performance — Migrating from Mocha to Jest](https://medium.com/airbnb-engineering/unlocking-test-performance-migrating-from-mocha-to-jest-2796c508ec50)
 
 ---
 
-## New slide
+# The End :)
 
-```js
-export class User {
-    constructor(name, age) {
-    }
-}
-
-```
-
-----
-
-Use ^Note: as speaker notes separator.
-Use <!-- .slide: data-background="#ff0000" --> to customize slide styles.
-Use <!-- .element: style="width: 60%;" --> to customize element styles.
-Use <!-- .element: class="fragment" --> to create fragment.
 

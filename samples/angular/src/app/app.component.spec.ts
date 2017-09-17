@@ -35,19 +35,29 @@ describe('AppComponent', () => {
     }),
   );
 
-  it(
-    'should render title in a h1 tag',
-    async(() => {
-      const fixture = TestBed.createComponent(AppComponent);
-      fixture.detectChanges();
-      const compiled = fixture.debugElement.nativeElement;
-      expect(compiled.querySelector('h1').textContent).toContain('APP WORKS!');
-    }),
-  );
+  it('should render title in a h1 tag', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const compiled = fixture.debugElement.nativeElement;
+    expect(compiled.querySelector('h1').textContent).toContain('APP WORKS!');
+  });
+
+  it('should hide h1 when button clicked', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const el = fixture.debugElement.nativeElement;
+    expect(el.querySelector('h1')).not.toBeNull();
+
+    el.querySelector('#button').click();
+    fixture.detectChanges();
+    expect(el.querySelector('h1')).toBeNull();
+  });
 
   it('should render correctly', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
-    expect(fixture).toMatchSnapshot();
+    //
+    // add snapshot testing here
+    //
   });
 });

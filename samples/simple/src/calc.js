@@ -9,3 +9,5 @@ export class Calc {
     return x * y;
   }
 }
+
+const calc = new Calc();
