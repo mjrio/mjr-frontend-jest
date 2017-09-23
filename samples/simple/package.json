@@ -4,7 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
-    "jest": "^21.0.1"
+    "babel-core": "^6.26.0"
   },
   "devDependencies": {
     "babel-preset-es2015": "^6.24.1"
